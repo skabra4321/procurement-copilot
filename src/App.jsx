@@ -56,12 +56,10 @@ function md(t) {
 }
 
 async function callClaude(system, user, useSearch) {
-  const apiKey = process.env.REACT_APP_ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("API key not configured. Add REACT_APP_ANTHROPIC_API_KEY to your Vercel environment variables.");
   const body = { model: "claude-sonnet-4-6", max_tokens: 1100, system, messages: [{ role: "user", content: user }] };
   if (useSearch) body.tools = [{ type: "web_search_20250305", name: "web_search" }];
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST", headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-calls": "true" }, body: JSON.stringify(body),
+  const r = await fetch("/api/claude", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`API ${r.status}`);
   const d = await r.json();
