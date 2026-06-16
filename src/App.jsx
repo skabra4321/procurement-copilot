@@ -13,7 +13,7 @@ const FONTS = `
 .f-display{font-family:'Space Grotesk',sans-serif}
 .f-body{font-family:'Inter',sans-serif}
 .out h1,.out h2,.out h3{font-family:'Space Grotesk',sans-serif;font-weight:600;color:#0a1428;margin-top:1.1em;margin-bottom:.4em}
-.out h1{font-size:1.15rem;border-bottom:2px solid #0a6ff0;padding-bottom:.3em}
+.out h1{font-size:1.15rem;border-bottom:2px solid #1e1cb0;padding-bottom:.3em}
 .out h2{font-size:1.05rem}.out h3{font-size:.95rem}
 .out p{margin-bottom:.6em;line-height:1.65}
 .out table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.82rem}
@@ -22,7 +22,7 @@ const FONTS = `
 .out tr:nth-child(even) td{background:#f4f7fb}
 .out ul,.out ol{margin:.5em 0 .8em 1.4em}.out li{margin-bottom:.35em;line-height:1.55}
 .out strong{color:#0a1428}
-.out blockquote{border-left:3px solid #0a6ff0;padding-left:12px;color:#475569;margin:.7em 0;font-style:italic}
+.out blockquote{border-left:3px solid #1e1cb0;padding-left:12px;color:#475569;margin:.7em 0;font-style:italic}
 .out code{background:#eef2f8;padding:1px 5px;border-radius:3px;font-size:.85em}
 @keyframes pd{0%,100%{opacity:.3}50%{opacity:1}}
 .td{animation:pd 1.2s infinite}.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
@@ -73,7 +73,7 @@ const store = {
   async set(k, val) { try { await window.storage.set(k, JSON.stringify(val)); } catch { /* degrade */ } },
 };
 
-const PC = { Strategise: "#a060d0", Source: "#0a6ff0", Evaluate: "#0a9fd8", Award: "#1a9e6e", Contract: "#c4621c", Manage: "#d04848", Anytime: "#64748b" };
+const PC = { Strategise: "#a060d0", Source: "#1e1cb0", Evaluate: "#0a9fd8", Award: "#1a9e6e", Contract: "#c4621c", Manage: "#d04848", Anytime: "#64748b" };
 
 const persona = (org, kb, tmpl) => `You are the Procurement Co-Pilot — a world-class procurement advisor embedded in a buyer's workflow, built by TransformationX. Deep GCC expertise: UAE federal procurement law, KSA LCGPA & IKTVA, Emiratisation, ICV, category management (Kraljic, 7-lever framework).
 ${org ? `\nORGANISATION CONTEXT (always honour):\n${org}\n` : ""}${kb ? `\nCOMPANY KNOWLEDGE BASE — policies & rules you MUST apply and cite:\n${kb}\n` : ""}${tmpl ? `\nCOMPANY TEMPLATE — output MUST follow this exact structure, headings and style:\n${tmpl}\n` : ""}
@@ -262,10 +262,10 @@ export default function App() {
       {/* SIDEBAR */}
       <div style={{ width: 256, background: "#050a14", display: "flex", flexDirection: "column", flexShrink: 0 }}>
         <div style={{ padding: "18px 18px 14px", borderBottom: "1px solid #101a2c" }}>
-          <div className="f-display" style={{ fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>
-            Procurement<span style={{ color: "#0a6ff0" }}> Co-Pilot</span>
+          <img src="/logo.png" alt="TransformationX" style={{ height: 32, display: "block", marginBottom: 8 }} />
+          <div className="f-display" style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>
+            Procurement<span style={{ color: "#1e1cb0" }}> Co-Pilot</span>
           </div>
-          <div style={{ fontSize: 10, color: "#3a4a64", marginTop: 3, letterSpacing: "0.08em", textTransform: "uppercase" }}>TransformationX</div>
         </div>
 
         <div style={{ padding: "12px 14px", borderBottom: "1px solid #101a2c" }}>
@@ -285,7 +285,7 @@ export default function App() {
               {MODULES.filter(m => m.phase === phase).map(m => (
                 <button key={m.id} onClick={() => { setActive(m.id); setView("module"); setError(null); }}
                   style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 8, border: "none", cursor: "pointer",
-                    background: active === m.id && view === "module" ? "#0a6ff018" : "transparent",
+                    background: active === m.id && view === "module" ? "#1e1cb018" : "transparent",
                     borderLeft: active === m.id && view === "module" ? `3px solid ${PC[phase]}` : "3px solid transparent", textAlign: "left", marginBottom: 1 }}>
                   <span style={{ fontSize: 15 }}>{m.icon}</span>
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: active === m.id && view === "module" ? "#fff" : "#8aa0c0" }}>{m.name}</div>
@@ -305,10 +305,10 @@ export default function App() {
           ].map(item => (
             <button key={item.id} onClick={() => setView(item.id)}
               style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 8, border: "none", cursor: "pointer",
-                background: view === item.id ? "#0a6ff018" : "transparent", textAlign: "left", marginBottom: 1 }}>
+                background: view === item.id ? "#1e1cb018" : "transparent", textAlign: "left", marginBottom: 1 }}>
               <span style={{ fontSize: 14 }}>{item.icon}</span>
               <span style={{ fontSize: 12.5, fontWeight: 600, color: view === item.id ? "#fff" : "#8aa0c0" }}>{item.label}</span>
-              {item.badge != null && <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: "#0a6ff0", background: "#0a6ff020", borderRadius: 10, padding: "1px 7px" }}>{item.badge}</span>}
+              {item.badge != null && <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: "#1e1cb0", background: "#1e1cb020", borderRadius: 10, padding: "1px 7px" }}>{item.badge}</span>}
             </button>
           ))}
         </div>
@@ -346,7 +346,7 @@ export default function App() {
               {mod.templateSlot && !templates[mod.id] && (
                 <div style={{ background: "#f1f5fd", border: "1px solid #dbe5f5", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#475569", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <span>💡 No <strong>{mod.templateSlot}</strong> loaded — output uses best-practice structure. Load yours to match your company format exactly.</span>
-                  <button onClick={() => setView("templates")} style={{ background: "#0a6ff0", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>Add template</button>
+                  <button onClick={() => setView("templates")} style={{ background: "#1e1cb0", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>Add template</button>
                 </div>
               )}
 
@@ -361,7 +361,7 @@ export default function App() {
                 ))}
                 {error && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", fontSize: 12.5, color: "#b91c1c", marginBottom: 14 }}>{error}</div>}
                 <button onClick={run} disabled={loading}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 8, background: loading ? "#94a3b8" : "#0a6ff0", color: "#fff", border: "none", borderRadius: 9, padding: "11px 22px", fontSize: 13.5, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "Inter", boxShadow: loading ? "none" : "0 2px 8px rgba(10,111,240,0.3)" }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8, background: loading ? "#94a3b8" : "#1e1cb0", color: "#fff", border: "none", borderRadius: 9, padding: "11px 22px", fontSize: 13.5, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "Inter", boxShadow: loading ? "none" : "0 2px 8px rgba(10,111,240,0.3)" }}>
                   {loading ? (<><span className="td" style={{ width: 5, height: 5, borderRadius: "50%", background: "#fff" }} /><span className="td" style={{ width: 5, height: 5, borderRadius: "50%", background: "#fff" }} /><span className="td" style={{ width: 5, height: 5, borderRadius: "50%", background: "#fff" }} /><span style={{ marginLeft: 4 }}>Working{mod.useSearch ? " — researching market" : ""}…</span></>) : (<>✦ {mod.btn}</>)}
                 </button>
               </div>
@@ -436,7 +436,7 @@ export default function App() {
                 ) : (
                   [...new Set(savedOutputs.map(o => o.project))].map(proj => (
                     <div key={proj} style={{ marginBottom: 20 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0a6ff0", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>{proj}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#1e1cb0", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>{proj}</div>
                       {savedOutputs.filter(o => o.project === proj).map(o => (
                         <details key={o.id} style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f2", padding: "12px 16px", marginBottom: 8 }}>
                           <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
