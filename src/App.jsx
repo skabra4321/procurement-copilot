@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import * as mammoth from "mammoth";
 
 // ═══════════════════════════════════════════════════════════════
 // PROCUREMENT CO-PILOT · TransformationX
@@ -174,6 +173,17 @@ const DEFAULT_CATEGORIES = [
   "Catering & Hospitality", "Medical & Lab Supplies", "Office Supplies", "Telecom", "Insurance", "Other",
 ];
 
+async function loadMammoth() {
+  if (window.mammoth) return window.mammoth;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
+    s.onload = () => resolve(window.mammoth);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
 async function loadPdfJs() {
   if (window.pdfjsLib) return window.pdfjsLib;
   return new Promise((resolve, reject) => {
@@ -200,6 +210,7 @@ async function extractFileText(file) {
     });
   }
   if (ext === "docx") {
+    const mammoth = await loadMammoth();
     const buf = await file.arrayBuffer();
     const result = await mammoth.extractRawValue({ arrayBuffer: buf });
     return result.value;
