@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import * as mammoth from "mammoth";
 
 // ═══════════════════════════════════════════════════════════════
 // PROCUREMENT CO-PILOT · TransformationX
@@ -173,6 +174,51 @@ const DEFAULT_CATEGORIES = [
   "Catering & Hospitality", "Medical & Lab Supplies", "Office Supplies", "Telecom", "Insurance", "Other",
 ];
 
+async function loadPdfJs() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      resolve(window.pdfjsLib);
+    };
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function extractFileText(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (ext === "txt" || ext === "md") {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.onerror = rej;
+      r.readAsText(file);
+    });
+  }
+  if (ext === "docx") {
+    const buf = await file.arrayBuffer();
+    const result = await mammoth.extractRawValue({ arrayBuffer: buf });
+    return result.value;
+  }
+  if (ext === "pdf") {
+    const pdfjsLib = await loadPdfJs();
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(s => s.str).join(" ") + "\n";
+    }
+    return text.trim();
+  }
+  throw new Error(`Unsupported file type: .${ext}`);
+}
+
 export default function App() {
   const [view, setView] = useState("module");
   const [active, setActive] = useState("rfp");
@@ -190,8 +236,23 @@ export default function App() {
   const [activeProject, setActiveProject] = useState(null);
   const [savedOutputs, setSavedOutputs] = useState([]);
 
+  const [uploadStatus, setUploadStatus] = useState({});
+  const fileInputRefs = useRef({});
   const outRef = useRef(null);
   const mod = MODULES.find(m => m.id === active);
+
+  const handleFileUpload = async (moduleId, file) => {
+    if (!file) return;
+    setUploadStatus(p => ({ ...p, [moduleId]: "reading" }));
+    try {
+      const text = await extractFileText(file);
+      saveTemplate(moduleId, text);
+      setUploadStatus(p => ({ ...p, [moduleId]: "done" }));
+      setTimeout(() => setUploadStatus(p => ({ ...p, [moduleId]: null })), 2500);
+    } catch (e) {
+      setUploadStatus(p => ({ ...p, [moduleId]: "error: " + e.message }));
+    }
+  };
 
   useEffect(() => { (async () => {
     setOrgProfile(await store.get("cp-org", ""));
@@ -386,23 +447,62 @@ export default function App() {
             {view === "templates" && (
               <div>
                 <h1 className="f-display" style={{ fontSize: 24, fontWeight: 700, marginBottom: 6 }}>Templates</h1>
-                <p style={{ fontSize: 13, color: "#64748b", marginBottom: 22, maxWidth: 640 }}>Paste your company's templates once. The Co-Pilot shapes every output to match your exact structure, headings and style — so what comes out is ready for your process, not reformatted from scratch.</p>
-                {MODULES.filter(m => m.templateSlot).map(m => (
+                <p style={{ fontSize: 13, color: "#64748b", marginBottom: 22, maxWidth: 640 }}>Upload or paste your company templates. The Co-Pilot shapes every output to match your exact structure — so what comes out is ready for your process, not reformatted from scratch.</p>
+                {MODULES.filter(m => m.templateSlot).map(m => {
+                  const status = uploadStatus[m.id];
+                  return (
                   <div key={m.id} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f2", padding: "18px 20px", marginBottom: 14 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                       <span style={{ fontSize: 18 }}>{m.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 14, fontWeight: 700 }}>{m.templateSlot}</div>
                         <div style={{ fontSize: 11.5, color: "#94a3b8" }}>Used by {m.name}</div>
                       </div>
-                      {templates[m.id] ? <span style={{ fontSize: 10.5, fontWeight: 700, color: "#15803d", background: "#dcfce7", padding: "3px 10px", borderRadius: 12 }}>✓ Loaded</span> : <span style={{ fontSize: 10.5, fontWeight: 600, color: "#94a3b8" }}>Not set</span>}
+                      {templates[m.id]
+                        ? <span style={{ fontSize: 10.5, fontWeight: 700, color: "#15803d", background: "#dcfce7", padding: "3px 10px", borderRadius: 12 }}>✓ Loaded</span>
+                        : <span style={{ fontSize: 10.5, fontWeight: 600, color: "#94a3b8" }}>Not set</span>}
                     </div>
+
+                    {/* File upload drop zone */}
+                    <div
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={e => { e.preventDefault(); handleFileUpload(m.id, e.dataTransfer.files[0]); }}
+                      onClick={() => fileInputRefs.current[m.id]?.click()}
+                      style={{ border: "2px dashed #c7d3e8", borderRadius: 10, padding: "16px 20px", marginBottom: 12, cursor: "pointer", background: "#f8fafd", display: "flex", alignItems: "center", gap: 14, transition: "border-color 0.15s" }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = "#1e1cb0"}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = "#c7d3e8"}
+                    >
+                      <div style={{ fontSize: 26 }}>📎</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                          {status === "reading" ? "⏳ Extracting text…"
+                            : status === "done" ? "✅ Template extracted successfully"
+                            : status?.startsWith("error") ? `❌ ${status}`
+                            : "Upload template file"}
+                        </div>
+                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 2 }}>PDF, Word (.docx), or plain text — drag & drop or click to browse</div>
+                      </div>
+                      <input
+                        ref={el => fileInputRefs.current[m.id] = el}
+                        type="file"
+                        accept=".pdf,.docx,.txt,.md"
+                        style={{ display: "none" }}
+                        onChange={e => handleFileUpload(m.id, e.target.files[0])}
+                      />
+                    </div>
+
+                    {/* Manual paste fallback */}
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.06em" }}>Or paste directly</div>
                     <textarea value={templates[m.id] || ""} onChange={e => saveTemplate(m.id, e.target.value)}
-                      placeholder={`Paste your ${m.templateSlot.toLowerCase()} — section headings, standard clauses, table structures, boilerplate. The Co-Pilot follows it exactly.`}
+                      placeholder={`Paste your ${m.templateSlot.toLowerCase()} — section headings, standard clauses, table structures, boilerplate.`}
                       rows={templates[m.id] ? 6 : 3}
                       style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #d7dfeb", fontSize: 12.5, fontFamily: "Inter", background: "#fbfcfe", color: "#0a1428", resize: "vertical", lineHeight: 1.5 }} />
+                    {templates[m.id] && (
+                      <button onClick={() => saveTemplate(m.id, "")} style={{ marginTop: 8, fontSize: 11, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", padding: 0 }}>✕ Clear template</button>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
